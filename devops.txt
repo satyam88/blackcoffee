@@ -3,4 +3,6 @@ github
 maven
 jenkins
 microserices
-ci.cd
+nexus
+sonarqube
+terraform
