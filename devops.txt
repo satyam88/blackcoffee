@@ -3,6 +3,11 @@ github
 maven
 jenkins
 microserices
+cicd
 kuberntes
 ansible
 maven
+aws ecr
+nexus
+sonarqube
+terraform
