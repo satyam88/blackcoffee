@@ -1,0 +1,5 @@
+how pollscm build trigger works.
+if you have specifed poll scm build in jenkins job
+then the jenkins job will check the github repo at the specifed duration
+if there are any changes in the repo, the jenkins job will run other it will not
+:wq!
