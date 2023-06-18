@@ -1,3 +1,4 @@
 mvn clean compile
 mvn clean package
 mvn spring-boot:run
+maven clean deploy
