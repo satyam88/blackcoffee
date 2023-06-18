@@ -11,3 +11,6 @@ aws ecr
 nexus
 sonarqube
 terraform
+awsdevops
+azuredevops
+scpdevops
