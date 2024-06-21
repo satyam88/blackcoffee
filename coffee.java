@@ -24,14 +24,13 @@ WORKDIR /usr/local/tomcat/webapps
 # Start Tomcat
 CMD ["catalina.sh", "run"]
 =================================
-
 pipeline {
     agent any
 
     environment {
         IMAGE_NAME = "satyam88/easymytrip:dev-easymytrip-v.1.${env.BUILD_NUMBER}"
         ECR_IMAGE_NAME = "533267238276.dkr.ecr.ap-south-1.amazonaws.com/easymytrip:dev-easymytrip-v.1.${env.BUILD_NUMBER}"
-        NEXUS_IMAGE_NAME = "13.233.149.23:8085/easymytrip-ms:dev-easymytrip-v.1.${env.BUILD_NUMBER}"
+        NEXUS_IMAGE_NAME = "3.110.216.145:8085/easymytrip-ms:dev-easymytrip-v.1.${env.BUILD_NUMBER}"
     }
 
     options {
@@ -48,6 +47,20 @@ pipeline {
                 echo 'Code Compilation is In Progress!'
                 sh 'mvn clean compile'
                 echo 'Code Compilation is Completed Successfully!'
+            }
+        }
+        stage('Sonarqube Code Quality') {
+            environment {
+                scannerHome = tool 'sonarqube-scanner'
+            }
+            steps {
+                withSonarQubeEnv('sonar-server') {
+                    sh "${scannerHome}/bin/sonar-scanner"
+                    sh 'mvn sonar:sonar'
+                }
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
         stage('Code QA Execution') {
@@ -105,7 +118,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        sh 'docker login http://13.233.149.23:8085/repository/easymytrip-ms/ -u admin -p ${PASSWORD}'
+                        sh 'docker login http://3.110.216.145:8085/repository/easymytrip-ms/ -u admin -p ${PASSWORD}'
                         echo "Push Docker Image to Nexus: In Progress"
                         sh "docker tag ${env.IMAGE_NAME} ${env.NEXUS_IMAGE_NAME}"
                         sh "docker push ${env.NEXUS_IMAGE_NAME}"
