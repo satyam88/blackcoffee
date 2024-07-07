@@ -1,11 +1,2 @@
-git
-github
-maven
-jenkins
-microserices
-ci.cd
-helm
-
-karpenter
-
-coppilot
+Mesage Broker : Rabbitmq/kafka
+APM: Instana, Dynatrace, Appdymanics, datadog
