@@ -1,2 +1,64 @@
-llknmml
-dfvfdf
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres_container
+    environment:
+      POSTGRES_USER: exampleuser
+      POSTGRES_PASSWORD: examplepass
+      POSTGRES_DB: exampledb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - mynetwork
+
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq_container
+    environment:
+      RABBITMQ_DEFAULT_USER: exampleuser
+      RABBITMQ_DEFAULT_PASS: examplepass
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672" # RabbitMQ port
+      - "15672:15672" # RabbitMQ management console
+    networks:
+      - mynetwork
+
+  redis:
+    image: redis:latest
+    container_name: redis_container
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - mynetwork
+
+volumes:
+  postgres_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  mynetwork:
+    driver: bridge
+============
+
+-- Create schema
+CREATE SCHEMA IF NOT EXISTS my_schema;
+
+-- Optionally, you can also create tables or other objects here
+-- For example:
+-- CREATE TABLE my_schema.my_table (
+--     id SERIAL PRIMARY KEY,
+--     name VARCHAR(255)
+-- );
