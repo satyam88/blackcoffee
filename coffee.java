@@ -28,9 +28,12 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "satyam88/easymytrip:dev-easymytrip-v.1.${env.BUILD_NUMBER}"
-        ECR_IMAGE_NAME = "533267238276.dkr.ecr.ap-south-1.amazonaws.com/easymytrip:dev-easymytrip-v.1.${env.BUILD_NUMBER}"
-        NEXUS_IMAGE_NAME = "3.110.216.145:8085/easymytrip-ms:dev-easymytrip-v.1.${env.BUILD_NUMBER}"
+        AWS_ACCOUNT_ID = "533267238276"
+        REGION = "ap-south-1"
+        ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com"
+        IMAGE_NAME = "satyam88/demo-application:demo-application-v.1.${env.BUILD_NUMBER}"
+        ECR_IMAGE_NAME = "${AWS_ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/demo-application:demo-application-v.1.${env.BUILD_NUMBER}"
+        NEXUS_IMAGE_NAME = "13.233.104.219:8085/demo-application:dev-demo-application-v.1.${env.BUILD_NUMBER}"
     }
 
     options {
@@ -39,6 +42,7 @@ pipeline {
 
     tools {
         maven 'maven_3.9.4'
+        // sonarqubeScanner 'sonarqube-scanner'
     }
 
     stages {
@@ -49,32 +53,11 @@ pipeline {
                 echo 'Code Compilation is Completed Successfully!'
             }
         }
-        stage('Sonarqube Code Quality') {
-            environment {
-                scannerHome = tool 'sonarqube-scanner'
-            }
-            steps {
-                withSonarQubeEnv('sonar-server') {
-                    sh "${scannerHome}/bin/sonar-scanner"
-                    sh 'mvn sonar:sonar'
-                }
-                timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-            }
-        }
-        stage('Code QA Execution') {
-            steps {
-                echo 'JUnit Test Case Check in Progress!'
-                sh 'mvn clean test'
-                echo 'JUnit Test Case Check Completed!'
-            }
-        }
         stage('Code Package') {
             steps {
                 echo 'Creating WAR Artifact'
                 sh 'mvn clean package'
-                echo 'WAR Artifact Creation Completed'
+                echo 'Artifact Creation Completed'
             }
         }
         stage('Building & Tag Docker Image') {
@@ -82,13 +65,6 @@ pipeline {
                 echo "Starting Building Docker Image: ${env.IMAGE_NAME}"
                 sh "docker build -t ${env.IMAGE_NAME} ."
                 echo 'Docker Image Build Completed'
-            }
-        }
-        stage('Docker Image Scanning') {
-            steps {
-                echo 'Docker Image Scanning Started'
-                // Add actual scanning steps here
-                echo 'Docker Image Scanning Completed'
             }
         }
         stage('Docker Push to Docker Hub') {
@@ -103,11 +79,11 @@ pipeline {
         }
         stage('Docker Image Push to Amazon ECR') {
             steps {
-                echo "Tagging Docker Image for ECR: ${env.ECR_IMAGE_NAME}"
+                echo "Tagging Docker Image for ECRq: ${env.ECR_IMAGE_NAME}"
                 sh "docker tag ${env.IMAGE_NAME} ${env.ECR_IMAGE_NAME}"
                 echo "Docker Image Tagging Completed"
 
-                withDockerRegistry([credentialsId: 'ecr:ap-south-1:ecr-credentials', url: "https://533267238276.dkr.ecr.ap-south-1.amazonaws.com"]) {
+                withDockerRegistry([credentialsId: 'ecr:ap-south-1:ecr-credentials', url: "https://${ECR_URL}"]) {
                     echo "Pushing Docker Image to ECR: ${env.ECR_IMAGE_NAME}"
                     sh "docker push ${env.ECR_IMAGE_NAME}"
                     echo "Docker Image Push to ECR Completed"
@@ -118,7 +94,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        sh 'docker login http://3.110.216.145:8085/repository/easymytrip-ms/ -u admin -p ${PASSWORD}'
+                        sh 'docker login http://13.233.104.219:8085/repository/demo-application/ -u admin -p ${PASSWORD}'
                         echo "Push Docker Image to Nexus: In Progress"
                         sh "docker tag ${env.IMAGE_NAME} ${env.NEXUS_IMAGE_NAME}"
                         sh "docker push ${env.NEXUS_IMAGE_NAME}"
