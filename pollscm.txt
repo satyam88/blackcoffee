@@ -51,3 +51,8 @@ variable "storage_account_replication" {
 }
 =========
 terraform.tfvars
+
+==
+echo 'export PATH=/root/bin/1.7.5:$PATH' >> ~/.bashrc
+source ~/.bashrc
+
