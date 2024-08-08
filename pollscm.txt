@@ -1,5 +1,53 @@
-how pollscm build trigger works.
-if you have specifed poll scm build in jenkins job
-then the jenkins job will check the github repo at the specifed duration
-if there are any changes in the repo, the jenkins job will run other it will not
-:wq!
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "rg" {
+  name     = var.resource_group_name
+  location = var.location
+}
+
+resource "azurerm_storage_account" "storage" {
+  name                     = var.storage_account_name
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = var.storage_account_tier
+  account_replication_type = var.storage_account_replication
+}
+
+===
+resource_group_name       = "myResourceGroup"
+location                  = "East US"
+storage_account_name      = "mystorageaccount"
+storage_account_tier      = "Standard"
+storage_account_replication = "LRS"
+===
+variable "resource_group_name" {
+  description = "The name of the resource group"
+  type        = string
+}
+
+variable "location" {
+  description = "The location of the resource group"
+  type        = string
+  default     = "East US"
+}
+
+variable "storage_account_name" {
+  description = "The name of the storage account"
+  type        = string
+}
+
+variable "storage_account_tier" {
+  description = "The performance tier of the storage account"
+  type        = string
+  default     = "Standard"
+}
+
+variable "storage_account_replication" {
+  description = "The replication strategy for the storage account"
+  type        = string
+  default     = "LRS"
+}
+=========
+terraform.tfvars
