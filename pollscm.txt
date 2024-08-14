@@ -84,3 +84,38 @@ alerts = {
     }
 }
 ===
+alerts = {
+    "shopping-list-row-count-alert" = {
+        summary = "Monitoring DB Row Count Exceeding Threshold"
+        evaluation_frequency = "PT5M"
+        window_duration = "PT10M"
+        criteria = {
+            query = <<EOF
+union isfuzzy=true exceptions
+| where timestamp > ago(5h)
+| where * has "ShoppingList"
+| order by timestamp desc
+| summarize row_count = count() by bin(timestamp, 5h)
+| where row_count > 10
+| project timestamp, row_count
+| take 100
+EOF
+            operator = "GreaterThan"
+            threshold = 10
+            time_aggregation_method = "Total"
+            resource_id_column = "ResourceId"
+            metric_measure_column = "row_count"
+            dimension = ""
+            failing_periods = {
+                minimum_failing_periods_to_trigger_alert = 1
+                number_of_evaluation_periods = 1
+            }
+        }
+        auto_mitigation_enabled = false
+        description = "Monitoring DB Row Count Exceeding Threshold"
+        display_name = "Azure DB Monitoring Alert"
+        enabled = true
+        severity = 1
+        skip_query_validation = false
+    }
+}
