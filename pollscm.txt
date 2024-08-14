@@ -54,3 +54,56 @@ EOF
 
 
 ===
+
+========
+
+helm repo add istio https://istio-release.storage.googleapis.com/charts
+helm repo update
+kubectl create namespace istio-system
+helm install istiod istio/istiod -n istio-system
+helm install istio-ingressgateway istio/gateway -n istio-system
+kubectl get pods -n istio-system
+kubectl get svc -n istio-system
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: nginx-example
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: nginx-example
+spec:
+  type: LoadBalancer
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+kubectl get svc -n nginx-example
+Visit the IP address in your browser.
+
+curl -LO https://get.helm.sh/helm-v3.11.3-linux-amd64.tar.gz
+tar -zxvf helm-v3.11.3-linux-amd64.tar.gz
+sudo mv linux-amd64/helm /usr/local/bin/helm
+helm version
+
