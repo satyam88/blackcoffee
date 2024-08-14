@@ -1,58 +1,51 @@
-provider "azurerm" {
-  features {}
-}
+Query: """
+union isfuzzy=true exceptions
 
-resource "azurerm_resource_group" "rg" {
-  name     = var.resource_group_name
-  location = var.location
-}
+| where timestamp > datetime("2024-06-21T05:58:01.706Z") and timestamp < datetime("2024-06-24T05:58:01.706Z")
 
-resource "azurerm_storage_account" "storage" {
-  name                     = var.storage_account_name
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = azurerm_resource_group.rg.location
-  account_tier             = var.storage_account_tier
-  account_replication_type = var.storage_account_replication
-}
+| where * has "ShoppingList"
 
+| order by timestamp desc
+
+| summarize row_count = count() by bin(timestamp, 5h)
+
+| where row_count > 10
+
+| project timestamp, row_count
+
+| take 100
+"""
 ===
-resource_group_name       = "myResourceGroup"
-location                  = "East US"
-storage_account_name      = "mystorageaccount"
-storage_account_tier      = "Standard"
-storage_account_replication = "LRS"
-===
-variable "resource_group_name" {
-  description = "The name of the resource group"
-  type        = string
+alerts = {
+    "shopping-list-row-count-alert" = {
+        summary = "Monitoring DB Row Count Exceeding Threshold"
+        evaluation_frequency = "PT5M"
+        window_duration = "PT10M"
+        criteria = {
+            query = """union isfuzzy=true exceptions
+                        | where timestamp > datetime("2024-06-21T05:58:01.706Z") and timestamp < datetime("2024-06-24T05:58:01.706Z")
+                        | where * has "ShoppingList"
+                        | order by timestamp desc
+                        | summarize row_count = count() by bin(timestamp, 5h)
+                        | where row_count > 10
+                        | project timestamp, row_count
+                        | take 100"""
+            operator = "GreaterThan"
+            threshold = 10
+            time_aggregation_method = "Total"
+            resource_id_column = "ResourceId"
+            metric_measure_column = "row_count"
+            dimension = ""
+            failing_periods = {
+                minimum_failing_periods_to_trigger_alert = 1
+                number_of_evaluation_periods = 1
+            }
+        }
+        auto_mitigation_enabled = false
+        description = "Monitoring DB Row Count Exceeding Threshold"
+        display_name = "Azure DB Monitoring Alert"
+        enabled = true
+        severity = 1
+        skip_query_validation = false
+    }
 }
-
-variable "location" {
-  description = "The location of the resource group"
-  type        = string
-  default     = "East US"
-}
-
-variable "storage_account_name" {
-  description = "The name of the storage account"
-  type        = string
-}
-
-variable "storage_account_tier" {
-  description = "The performance tier of the storage account"
-  type        = string
-  default     = "Standard"
-}
-
-variable "storage_account_replication" {
-  description = "The replication strategy for the storage account"
-  type        = string
-  default     = "LRS"
-}
-=========
-terraform.tfvars
-
-==
-echo 'export PATH=/root/bin/1.7.5:$PATH' >> ~/.bashrc
-source ~/.bashrc
-
