@@ -37,3 +37,10 @@ def lambda_handler(event, context):
         'statusCode': 200,
         'body': 'Completed volume deletion process'
     }
+========================
+
+1. go to configuration -- > general -> timeout change the value from 3 sec to 1 min 
+
+2. go to runtime setting - > Handler --> delete_unused_ebs_volume_accross_regions.lambda_handler 
+
+
