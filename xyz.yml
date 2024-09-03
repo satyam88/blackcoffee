@@ -1,0 +1,48 @@
+kubectl create secret generic digital-weavers \
+  --from-literal=MY_ENV_VAR=my-secret-value
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: i-28-digital-weavers
+  labels:
+    app: i-28-digital-weavers
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: i-28-digital-weavers
+  template:
+    metadata:
+      labels:
+        app: i-28-digital-weavers
+    spec:
+      nodeSelector:
+        "beta.kubernetes.io/os": linux
+      containers:
+        - name: i-28-digital-weavers
+          image: {{ demo_dockerfile }}
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+          volumeMounts:
+            - name: logs
+              mountPath: /script/logs
+          ports:
+            - containerPort: 80
+          env:
+            - name: MY_ENV_VAR
+              valueFrom:
+                secretKeyRef:
+                  name: digital-weavers    # Updated secret name
+                  key: MY_ENV_VAR          # The key in the secret
+      volumes:
+        - name: logs
+          emptyDir: {}
+======
+
+Secret Creation: This command creates a secret named digital-weavers with a key MY_ENV_VAR.
+Deployment Update: The valueFrom.secretKeyRef now refers to the digital-weavers secret.
