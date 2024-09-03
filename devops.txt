@@ -1,2 +1,38 @@
-Mesage Broker : Rabbitmq/kafka
-APM: Instana, Dynatrace, Appdymanics, datadog
+default:
+  tags: [devcloud-kubernetes]
+
+cache:
+  paths:
+    - .m2/repository/
+
+stages:
+  - build
+  - package
+  - publish
+  - deploy-snapshot
+  - deploy-release
+
+build:
+  stage: build
+  tags:
+    - devcloud-kubernetes
+
+  script:
+    - mvn package
+    - ls -ltr target/
+  
+  artifacts:
+    paths:
+      - target/
+    reports:
+      dotenv: build1.env
+
+include:
+  - project: 'ubs-ag/group-coo/group-ops/go-central-automation/internal/Emerge_t'
+    file: '/templates/docker-build-push.yml'
+
+deployaks:
+  extends: akshackathon
+  stage: deploy-snapshot
+  variables:
+    AKS_YAML_PATH: aks-deploy.yml
