@@ -11,3 +11,8 @@ promoteOption:
 This could provide additional control over the promotion behavior, such as setting specific options. Potential values might include:
 StopReplication: Stops replication on the replica during promotion.
 ForceFailover: Forces a failover to the replica (if relevant).
+
+az postgres flexible-server replica stop \
+  --name <replica-server-name> \
+  --resource-group <resource-group-name>
+
