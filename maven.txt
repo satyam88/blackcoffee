@@ -1,1 +1,13 @@
-mvn clean compile
+
+For promoting a replica in Azure PostgreSQL Flexible Server, you need to provide appropriate values for promoteMode and promoteOption. While the exact values can vary depending on the context, here's some guidance:
+
+promoteMode:
+
+This likely defines how the replica is promoted (e.g., the promotion type or strategy). Common values might include:
+Immediate: Promotes the replica to a primary immediately.
+Graceful: Promotes the replica in a controlled, graceful manner.
+promoteOption:
+
+This could provide additional control over the promotion behavior, such as setting specific options. Potential values might include:
+StopReplication: Stops replication on the replica during promotion.
+ForceFailover: Forces a failover to the replica (if relevant).
