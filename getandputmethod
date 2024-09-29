@@ -1,0 +1,77 @@
+
+======================================
+package com.example.makemytrip;
+
+
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestParam;
+
+@RestController
+public class HotelController {
+
+    @GetMapping("/hotel")
+    public String getData() {
+        return "Please book hotel from MMT, 75% discount in North India";
+    }
+
+
+    @PutMapping("/hotel/{hotelId}")
+    public String updateHotel(@PathVariable String hotelId, @RequestParam String status) {
+        return "Hotel with ID: " + hotelId + " is now " + status;
+    }
+}
+==================================
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hotel Booking</title>
+    <script>
+        // Function to make GET request to /hotel
+        function getHotels() {
+            fetch('/hotel')
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('output').innerText = data;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        // Function to make PUT request to /hotel/{hotelId}
+        function updateHotel() {
+            const hotelId = document.getElementById('hotelId').value;
+            const status = document.getElementById('status').value;
+
+            fetch(`/hotel/${hotelId}?status=${status}`, {
+                method: 'PUT'
+            })
+            .then(response => response.text())
+            .then(data => {
+                document.getElementById('output').innerText = data;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+</head>
+<body>
+<h1>Hotel Booking</h1>
+
+<!-- Button for GET request to fetch hotel details -->
+<button onclick="getHotels()">Get Hotels</button>
+
+<!-- Input fields and button for PUT request to update hotel status -->
+<div>
+    <input type="text" id="hotelId" placeholder="Hotel ID" />
+    <input type="text" id="status" placeholder="Status (e.g., booked)" />
+    <button onclick="updateHotel()">Update Hotel</button>
+</div>
+
+<!-- Area to display the response -->
+<div id="output" style="margin-top: 20px;"></div>
+</body>
+</html>
+======================
