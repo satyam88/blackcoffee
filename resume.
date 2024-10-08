@@ -1,0 +1,35 @@
+Working Knowledge on AWS Public Cloud Platform.
+✓ Knowledge of IAAS,PAAS,SAAS.
+✓ Exposure to Multiple service Like EC2, IAM, AMI, VPC, S3, RDS, EBS, ELB, ACM, Route53 AutoScaling & CloudWatch.
+✓ User Management: Creation of User, group, roles and Custom IAM Policy for Multiple 
+Stockholder.
+✓ Creation Bucket, implementing versioning, configuring AWS s3 lifecycle policy, cross region 
+replication, S3 Buckets and providing access via Bucket Policy.
+✓ Responsible for Purchase of OnDemand and reserved instance.
+✓ Creation of EC2 Instance with multiple configurations for multiple stack holders.
+✓ Maintaining and Troubleshooting of EC2 services like launching instances as per project 
+requirement, attaching and expending volumes, configuring security group, managing Elastic 
+IP and Creating IAM rules with required policies.
+✓ Adding Managing and Troubleshooting Multiple Root EBS Volumes and EBS Volume on AWS 
+EC2.
+✓ Migration of EC2 Instance from One Region to Another Region.
+Creation of custion ami
+✓ Implemented EFS of Multiple Application running on EC2 via Terraform. 
+✓ Monitoring multiple EC2 instance; EBS Volume using metrics like CPU Utilization, disk 
+read/write operation and network performance via Cloud Watch.
+✓ Hand on experience with Elastic Load Balancer & Auto-Scaling.
+
+Automatiing backup of root ebs volume using lambda function
+automatiing the proccess of identifty unused ebs volume and dleteing them in every 15days frequency
+✓ Implementation and management of Hosted Zone on AWS Route53 and routing policy.
+✓ Implemented VPC with public and Private Subnet and maintaining the route table, internet 
+gateway, Nat Instances within the VPC for 3 Tier Web Applications.
+✓ Handon Experience of VPC Peering for multiple Stockholder.
+✓ Configuring RDBMS and NonRDBMS system for multiple StackHolder based on their 
+requirement.
+migrating rdbms from one region to another region
+creating db snapsort and read replication
+✓ Responsible for Database day to day operations (Backup, User Management, Patching)
+✓ Hand on Experience with SQL(Select, Update, delete ,drop, alter, truncate Join) and NoSQL 
+✓ Hand on experience with CloudFormation for creation of VPC Peering Stack.
+✓ Responsible for Account billing and performing Audits via cloudtrail and trusted advisor 
