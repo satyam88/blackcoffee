@@ -25,6 +25,7 @@ sudo yum upgrade
 sudo yum install fontconfig -y  java-17-openjdk
 sudo yum install -y jenkins
 sudo systemctl daemon-reload
+service jenkins start
 chkconfig jenkins on
 
 
