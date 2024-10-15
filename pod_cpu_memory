@@ -1,1 +1,44 @@
 kubectl get pods -n <namespace> -o jsonpath='{range .items[*]}{.metadata.name}{"\t"}{.spec.containers[*].resources.requests.cpu}{"\t"}{.spec.containers[*].resources.requests.memory}{"\t"}{.spec.containers[*].resources.limits.cpu}{"\t"}{.spec.containers[*].resources.limits.memory}{"\n"}{end}'
+kubectl top pod -n <namespace> --no-headers
+pip install pandas openpyxl
+import subprocess
+import pandas as pd
+
+# Namespace
+namespace = "<namespace>"
+
+# Get Pod Resource Requests and Limits
+def get_pod_requests_limits(namespace):
+    cmd = f"kubectl get pods -n {namespace} -o jsonpath='{{range .items[*]}}{{.metadata.name}}{{\"\t\"}}{{.spec.containers[*].resources.requests.cpu}}{{\"\t\"}}{{.spec.containers[*].resources.requests.memory}}{{\"\t\"}}{{.spec.containers[*].resources.limits.cpu}}{{\"\t\"}}{{.spec.containers[*].resources.limits.memory}}{{\"\\n\"}}{{end}}'"
+    output = subprocess.getoutput(cmd)
+    return [line.split('\t') for line in output.splitlines()]
+
+# Get Current CPU and Memory Utilization
+def get_pod_utilization(namespace):
+    cmd = f"kubectl top pod -n {namespace} --no-headers"
+    output = subprocess.getoutput(cmd)
+    return [line.split() for line in output.splitlines()]
+
+# Fetch requests/limits and utilization
+requests_limits = get_pod_requests_limits(namespace)
+utilization = get_pod_utilization(namespace)
+
+# Prepare Data for Excel
+data = []
+for pod_req_limit in requests_limits:
+    pod_name = pod_req_limit[0]
+    util = next((u for u in utilization if u[0] == pod_name), None)
+    if util:
+        data.append([
+            pod_name,
+            pod_req_limit[1], pod_req_limit[2],  # CPU and Memory Requests
+            pod_req_limit[3], pod_req_limit[4],  # CPU and Memory Limits
+            util[1], util[2]  # Current CPU and Memory Usage
+        ])
+
+# Convert to DataFrame
+df = pd.DataFrame(data, columns=['Pod Name', 'CPU Requests', 'Memory Requests', 'CPU Limits', 'Memory Limits', 'Current CPU Usage', 'Current Memory Usage'])
+
+# Save to Excel
+df.to_excel("pod_resource_utilization.xlsx", index=False)
+print("Data saved to pod_resource_utilization.xlsx")
