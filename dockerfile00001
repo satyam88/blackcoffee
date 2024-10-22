@@ -60,3 +60,51 @@ RUN cd /opt && \
 # Source the .bash_profile to load the environment variables
 RUN source /root/.bash_profile
 
+
+
+####Particcal 2#####
+1. Add dockerfile in Fusion-ms Microservice 
+===
+FROM tomcat:9.0.52-jre11-openjdk-slim
+
+# Install Java 17
+RUN apt-get update && \
+    apt-get install -y openjdk-17-jdk && \
+    apt-get clean;
+
+# Set Java 17 as the default Java version
+RUN update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java && \
+    update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
+
+# Copy the JAR file into the Tomcat webapps directory
+COPY ./target/fusion-ms*.jar /usr/local/tomcat/webapps
+
+# Expose port 8080
+EXPOSE 8080
+
+# Set the user
+USER fusion
+
+# Set the working directory
+WORKDIR /usr/local/tomcat/webapps
+
+# Start Tomcat
+CMD ["catalina.sh", "run"]
+===
+2, Update the Jenkinsfile with new stage
+        stage('Building & Tag Docker Image') {
+            steps {
+                echo "Starting Building Docker Image"
+                sh "docker build -t fusion-ms ."
+                echo 'Docker Image Build Completed'
+            }
+        }
+3. Start the Jenkins Master & install docker.
+yum install -y docker
+service docker start
+chkconfig docker on
+usermod -aG docker ec2-user
+
+4. add the changes in local repo and push the changes to dev branch
+5. run the jenkins jobs
+
