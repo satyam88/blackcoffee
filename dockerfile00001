@@ -1,0 +1,53 @@
+FROM ubuntu:latest
+RUN apt-get update && apt-get install -y telnet
+CMD ["telnet"]
+===================
+#Create a Nginx Container
+FROM ubuntu 
+MAINTAINER demousr@gmail.com 
+RUN apt-get update \
+    && apt-get install -y nginx \
+    && apt-get clean \
+=============
+# Use the Amazon Linux base image
+FROM amazonlinux:2
+
+# Update the system and install necessary packages
+RUN yum update -y && \
+    yum install -y git tar wget && \
+    amazon-linux-extras install java-openjdk11 -y && \
+    yum clean all
+
+# Set up Maven
+RUN cd /opt && \
+    wget https://dlcdn.apache.org/maven/maven-3/3.9.4/binaries/apache-maven-3.9.4-bin.tar.gz && \
+    tar xvf apache-maven-3.9.4-bin.tar.gz && \
+    rm apache-maven-3.9.4-bin.tar.gz && \
+    echo "export M2_HOME=/opt/apache-maven-3.9.4" >> /root/.bash_profile && \
+    echo "export M2=\$M2_HOME/bin" >> /root/.bash_profile && \
+    echo "export PATH=\$M2:\$PATH" >> /root/.bash_profile
+
+# Source the .bash_profile to load the environment variables
+RUN source /root/.bash_profile
+========================
+# Use the Amazon Linux base image
+FROM amazonlinux:2
+
+# Update the system and install necessary packages
+RUN yum update -y && \
+    yum install -y git tar wget && \
+    yum install  -y java-17-amazon-corretto*  && \
+    yum clean all
+
+# Set up Maven
+RUN cd /opt && \
+    wget https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz && \
+    tar xvf apache-maven-3.9.9-bin.tar.gz && \
+    rm apache-maven-3.9.9-bin.tar.gz && \
+    echo "export M2_HOME=/opt/apache-maven-3.9.9" >> /root/.bash_profile && \
+    echo "export M2=\$M2_HOME/bin" >> /root/.bash_profile && \
+    echo "export PATH=\$M2:\$PATH" >> /root/.bash_profile
+
+# Source the .bash_profile to load the environment variables
+RUN source /root/.bash_profile
+
