@@ -1,3 +1,12 @@
+Install Docker on AWS EC2
+==============================
+#yum install -y docker
+#service docker start
+#chkconfig docker on
+#usermod -aG docker ec2-user
+=============================
+docker version
+=============================
 FROM ubuntu:latest
 RUN apt-get update && apt-get install -y telnet
 CMD ["telnet"]
