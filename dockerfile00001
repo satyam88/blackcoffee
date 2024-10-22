@@ -104,6 +104,7 @@ yum install -y docker
 service docker start
 chkconfig docker on
 usermod -aG docker ec2-user
+chmod 777 /var/run/docker.sock
 
 4. add the changes in local repo and push the changes to dev branch
 5. run the jenkins jobs
