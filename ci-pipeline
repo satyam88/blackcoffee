@@ -1,3 +1,29 @@
+====
+=============================
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecr:CompleteLayerUpload",
+                "ecr:UploadLayerPart",
+                "ecr:InitiateLayerUpload",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:PutImage",
+                "ecr:BatchGetImage"
+            ],
+            "Resource": "arn:aws:ecr:ap-south-1:533267238276:repository/makemytrip-microservice"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "ecr:GetAuthorizationToken",
+            "Resource": "*"
+        }
+    ]
+}
+==============================
 FROM tomcat:9.0.52-jre11-openjdk-slim
 
 # Install Java 17
