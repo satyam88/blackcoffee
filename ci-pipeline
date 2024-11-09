@@ -1,0 +1,104 @@
+FROM tomcat:9.0.52-jre11-openjdk-slim
+
+# Install Java 17
+RUN apt-get update && \
+    apt-get install -y openjdk-17-jdk && \
+    apt-get clean;
+
+# Set Java 17 as the default Java version
+RUN update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java && \
+    update-alternatives --set javac /usr/lib/jvm/java-17-openjdk-amd64/bin/javac
+
+# Copy the JAR file into the Tomcat webapps directory
+COPY ./target/makemytrip-microservice*.jar /usr/local/tomcat/webapps
+
+# Expose port 8080
+EXPOSE 8080
+
+# Set the user
+USER mmt
+
+# Set the working directory
+WORKDIR /usr/local/tomcat/webapps
+
+# Start Tomcat
+CMD ["catalina.sh", "run"]
+====================================
+pipeline {
+
+    agent any
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '3', artifactNumToKeepStr: '3'))
+    }
+
+    tools {
+        maven 'maven_3.9.4'
+    }
+
+    stages {
+        stage('Code Compilation') {
+            steps {
+                echo 'Starting Code Compilation...'
+                sh 'mvn clean compile'
+                echo 'Code Compilation Completed Successfully!'
+            }
+        }
+        stage('Code QA Execution') {
+            steps {
+                echo 'Running JUnit Test Cases...'
+                sh 'mvn clean test'
+                echo 'JUnit Test Cases Completed Successfully!'
+            }
+        }
+        stage('Code Package') {
+            steps {
+                echo 'Creating WAR Artifact...'
+                sh 'mvn clean package'
+                echo 'WAR Artifact Created Successfully!'
+            }
+        }
+        stage('Build & Tag Docker Image') {
+            steps {
+                echo 'Building Docker Image with Tags...'
+                sh "docker build -t satyam88/makemytrip-microservice:latest -t makemytrip-microservice:latest ."
+                echo 'Docker Image Build Completed!'
+            }
+        }
+        stage('Docker Image Scanning') {
+            steps {
+                echo 'Scanning Docker Image...'
+                sh 'docker scan satyam88/makemytrip-microservice:latest || echo "Scan Failed - Proceeding with Caution"'
+                echo 'Docker Image Scanning Completed!'
+            }
+        }
+        stage('Push Docker Image to Docker Hub') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'dockerhubCred', variable: 'dockerhubCred')]) {
+                        sh 'docker login docker.io -u satyam88 -p ${dockerhubCred}'
+                        echo 'Pushing Docker Image to Docker Hub...'
+                        sh 'docker push satyam88/makemytrip-microservice:latest'
+                        echo 'Docker Image Pushed to Docker Hub Successfully!'
+                    }
+                }
+            }
+        }
+        stage('Push Docker Image to Amazon ECR') {
+            steps {
+                script {
+                    withDockerRegistry([credentialsId: 'ecr:ap-south-1:ecr-credentials', url: "https://533267238276.dkr.ecr.ap-south-1.amazonaws.com"]) {
+                        echo 'Tagging and Pushing Docker Image to ECR...'
+                        sh '''
+                            docker images
+                            docker tag makemytrip-microservice:latest 533267238276.dkr.ecr.ap-south-1.amazonaws.com/makemytrip-microservice:latest
+                            docker push 533267238276.dkr.ecr.ap-south-1.amazonaws.com/makemytrip-microservice:latest
+                        '''
+                        echo 'Docker Image Pushed to Amazon ECR Successfully!'
+                    }
+                }
+            }
+        }
+    }
+}
+==================
