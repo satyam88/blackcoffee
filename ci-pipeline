@@ -3,16 +3,24 @@ download and install trivy
 # Update the package index
 sudo yum update -y
 
-# Install dependencies
+# Install wget if not already installed
 sudo yum install -y wget
 
-# Download and install Trivy
-wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_Linux-64bit.tar.gz
+# Download Trivy version 0.57.0
+wget https://github.com/aquasecurity/trivy/releases/download/v0.57.0/trivy_Linux-64bit.tar.gz
+
+# Extract the Trivy binary from the tar.gz file
 tar zxvf trivy_Linux-64bit.tar.gz
+
+# Move the Trivy binary to /usr/local/bin to make it globally accessible
 sudo mv trivy /usr/local/bin/
 
-# Verify the installation
+# Verify the Trivy installation
 trivy --version
+
+# Initialize the vulnerability database (optional but recommended)
+trivy image --download-db-only
+
 ===========Create inline policy docuemnt for giving permission to IAM user=================
 {
     "Version": "2012-10-17",
