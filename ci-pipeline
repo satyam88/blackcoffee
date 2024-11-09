@@ -1,6 +1,19 @@
-====
-=============================
+download and install trivy
+==========================
+# Update the package index
+sudo yum update -y
 
+# Install dependencies
+sudo yum install -y wget
+
+# Download and install Trivy
+wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_Linux-64bit.tar.gz
+tar zxvf trivy_Linux-64bit.tar.gz
+sudo mv trivy /usr/local/bin/
+
+# Verify the installation
+trivy --version
+===========Create inline policy docuemnt for giving permission to IAM user=================
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -23,7 +36,7 @@
         }
     ]
 }
-==============================
+===================Dockerfile===========
 FROM tomcat:9.0.52-jre11-openjdk-slim
 
 # Install Java 17
@@ -49,7 +62,7 @@ WORKDIR /usr/local/tomcat/webapps
 
 # Start Tomcat
 CMD ["catalina.sh", "run"]
-====================================
+===================Jenkinsfile=================
 pipeline {
 
     agent any
