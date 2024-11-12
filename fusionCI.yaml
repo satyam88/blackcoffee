@@ -25,6 +25,22 @@ pipeline {
                 echo 'JUnit Test Case Check Completed!'
             }
         }
+        stage('SonarQube Code Quality') {
+            environment {
+                scannerHome = tool 'qube'
+            }
+            steps {
+                echo 'Starting SonarQube Code Quality Scan...'
+                withSonarQubeEnv('sonar-server') {
+                    sh 'mvn sonar:sonar'
+                }
+                echo 'SonarQube Scan Completed. Checking Quality Gate...'
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+                echo 'Quality Gate Check Completed!'
+            }
+        }
         stage('Code Package') {
             steps {
                 echo 'Creating WAR Artifact'
@@ -81,10 +97,10 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        sh 'docker login http://13.201.118.129:8085/repository/fusion-ms/ -u admin -p ${PASSWORD}'
+                        sh 'docker login http://3.111.157.186:8085/repository/fusion-ms/ -u admin -p ${PASSWORD}'
                         echo "Push Docker Image to Nexus : In Progress"
-                        sh 'docker tag fusion-ms 13.201.118.129:8085/fusion-ms:latest'
-                        sh 'docker push 13.201.118.129:8085/fusion-ms'
+                        sh 'docker tag fusion-ms 3.111.157.186:8085/fusion-ms:latest'
+                        sh 'docker push 3.111.157.186:8085/fusion-ms'
                         echo "Push Docker Image to Nexus : Completed"
                     }
                 }
@@ -92,3 +108,4 @@ pipeline {
         }
     }
 }
+==================
