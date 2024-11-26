@@ -1,1 +1,16 @@
+A general rule is to allocate 75-80% of the pod's memory to the heap to leave room for non-heap usage.
 
+For a 10 GB pod:
+
+Heap allocation: ~7.5 GB to 8 GB.
+Recommended values:
+-Xms7g -Xmx7g
+
+
+For a 10 GB pod:
+
+Heap: ~7.5 GB (-Xms7g -Xmx7g).
+Metaspace: ~256 MB (-XX:MaxMetaspaceSize=256m).
+Threads: ~256 MB (-Xss1m x ~256 threads).
+Other JVM needs: ~500 MB.
+Kubernetes overhead: ~1 GB.
