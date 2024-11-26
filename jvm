@@ -14,3 +14,28 @@ Metaspace: ~256 MB (-XX:MaxMetaspaceSize=256m).
 Threads: ~256 MB (-Xss1m x ~256 threads).
 Other JVM needs: ~500 MB.
 Kubernetes overhead: ~1 GB.
+
+
+When assigning 15GB of memory to a Kubernetes pod running a Java application, here’s how you should configure the -Xms and -Xmx values for optimal performance while leaving room for other JVM and non-JVM processes.
+
+Key Recommendations
+Reserve Memory for Non-Heap Usage:
+
+JVM uses memory outside the heap for:
+Thread stacks.
+GC overhead.
+Metaspace.
+Direct buffers, etc.
+Rule of thumb: Reserve 30-40% of total pod memory for these processes.
+Heap Memory Allocation:
+
+Allocate 60-70% of the pod memory for heap (-Xms and -Xmx).
+For 15GB, heap memory should be around 9-10.5GB.
+Set -Xms and -Xmx to the Same Value:
+
+Prevents dynamic resizing of the heap.
+Example: -Xms10g -Xmx10g.
+Leave Space for Kubernetes Overhead:
+
+Kubernetes resources like sidecar containers or logging/monitoring agents might consume some memory.
+Ensure the total memory usage (JVM + non-JVM) stays within the pod limit.
