@@ -3,7 +3,7 @@
 1. Create a Linux VM
 
 2. Install kubectl
-curl -o kubectl https://s3.amazonaws.com/aws-cli-binaries/v2/latest/Linux/x86_64/aws-cli-exe-linux-x86_64.zip
+ curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 chmod +x kubectl
 mv kubectl /usr/local/bin/
 
