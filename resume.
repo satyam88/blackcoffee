@@ -33,3 +33,68 @@ creating db snapsort and read replication
 ✓ Hand on Experience with SQL(Select, Update, delete ,drop, alter, truncate Join) and NoSQL 
 ✓ Hand on experience with CloudFormation for creation of VPC Peering Stack.
 ✓ Responsible for Account billing and performing Audits via cloudtrail and trusted advisor 
+
+
+
+
+Roles and Responsibilities of a DevOps Engineer
+As a DevOps Engineer, your role is crucial in bridging the gap between development and operations teams to ensure seamless software delivery and infrastructure management. Below are the key roles and responsibilities you should highlight based on your expertise:
+
+1. Source Code Management
+Define and implement GitHub branching strategies to manage feature development, bug fixes, and releases effectively.
+Establish code progression strategies for staging, testing, and production environments.
+Manage branch permissions and enforce code reviews to maintain code quality and security.
+Set up webhooks for automated CI/CD triggers.
+
+2. Continuous Integration (CI)
+Design and implement CI pipelines for microservices written in Java (Spring Boot), leveraging tools like Maven for build automation.
+Use Nexus as a repository manager for artifact storage and versioning.
+Integrate Docker to build containerized applications and push images to AWS ECR.
+Perform image scanning for vulnerabilities using tools like Trivy or similar.
+
+3. Continuous Delivery/Deployment (CD)
+Deploy microservices to Kubernetes clusters using automated pipelines (e.g., Jenkins multibranch pipeline).
+Implement parameterized pipelines for flexibility in deployments.
+Manage Jenkins master-slave architecture to optimize pipeline execution.
+Automate infrastructure deployment and scaling using Terraform.
+
+4. Jenkins Administration
+Install, configure, and manage Jenkins servers, including plugin management and updates.
+Set up and maintain Jenkins credentials for secure integrations.
+Manage Jenkins users, roles, and permissions for enhanced security.
+Troubleshoot and resolve Jenkins pipeline issues to maintain uptime and efficiency.
+
+5. Docker and Containerization
+Develop optimized Dockerfiles, including multi-stage builds for efficient image creation.
+Manage Docker image lifecycle, from building to scanning, pushing, and deploying.
+Deploy and manage containerized applications across environments.
+
+6. Kubernetes (K8s) Management
+Create, manage, and update Kubernetes clusters, including worker node scaling and maintenance.
+Use Terraform for Kubernetes cluster provisioning and upgrades.
+Monitor and troubleshoot applications running on Kubernetes.
+Configure Kubernetes objects such as Deployments, Services, ConfigMaps, and Secrets for microservice deployments.
+
+7. Infrastructure as Code (IaC)
+Automate infrastructure provisioning using Terraform, including module creation for reusable and consistent infrastructure.
+Manage infrastructure across multiple AWS accounts using Jenkins and Terraform pipelines.
+Implement and manage AWS resources such as EC2, ECR, IAM, VPCs, RDS, and more.
+
+8. Monitoring and Security
+Monitor application performance and system health using tools like Prometheus, Grafana, or CloudWatch.
+Implement security best practices, such as image scanning, IAM role management, and compliance monitoring.
+Manage and troubleshoot Kubernetes RBAC and network policies.
+
+9. Collaboration and Documentation
+Work closely with developers, QA, and operations teams to ensure smooth software delivery.
+Document CI/CD pipelines, branching strategies, and infrastructure configurations for team reference.
+
+
+Summary of Key Tools
+=========================
+CI/CD: Jenkins, GitHub Actions, Maven, Nexus
+Containerization: Docker, AWS ECR
+Orchestration: Kubernetes (EKS)
+Infrastructure as Code: Terraform
+Monitoring: Prometheus, Grafana, CloudWatch
+Code Repositories: GitHub, GitLab
