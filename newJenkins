@@ -1,0 +1,144 @@
+On Jenkins Server
+==================
+
+yum -y update
+
+#git
+yum install -y git 
+
+#java
+yum install  -y java-17-amazon-corretto
+yum install -y java-17-amazon-corretto-devel
+
+
+#mvn 
+cd /opt
+sudo wget https://dlcdn.apache.org/maven/maven-3/3.9.4/binaries/apache-maven-3.9.4-bin.tar.gz
+sudo tar xvf apache-maven-3.9.4-bin.tar.gz
+ls -ltr
+cd
+echo "export M2_HOME=/opt/apache-maven-3.9.4" >> .bash_profile
+echo "export M2=$M2_HOME/bin" >> .bash_profile
+echo "export PATH=$M2:$PATH" >> .bash_profile
+source ~/.bash_profile
+echo $M2_HOME
+ 
+ 
+#jenkins
+sudo wget -O /etc/yum.repos.d/jenkins.repo \
+    https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+sudo yum upgrade
+sudo yum install-y fontconfig   java-17-openjdk
+sudo yum install -y jenkins
+sudo service jenkins start
+sudo systemctl daemon-reload
+chkconfig jenkins on
+
+#docker
+yum install -y docker
+service docker start
+usermod -aG docker ec2-user
+chkconfig docker on 
+
+# terraform
+sudo yum install -y yum-utils
+sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+sudo yum -y install terraform
+terraform -install-autocomplete
+
+#Install kubectl
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl
+mv kubectl /usr/local/bin/
+
+#aws-iam-authenticator
+curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.15.10/2020-02-22/bin/linux/amd64/aws-iam-authenticator
+chmod +x ./aws-iam-authenticator
+sudo mv ./aws-iam-authenticator /usr/local/bin
+aws-iam-authenticator version
+
+#aws-cli
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+unzip awscliv2.zip
+sudo ./aws/install
+
+#add jenkins to root user , open vsudo 
+jenkins ALL=(ALL)       NOPASSWD: ALL
+
+#update the login shell of jenkins user from /bin/nologin to /bin/bash
+ grep jenkins /etc/passwd
+jenkins:x:995:993:Jenkins Automation Server:/var/lib/jenkins:/bin/bash
+
+#login as jenkins user
+create root user access key and secrect access key
+aws configure --profile aws-root-credentials
+
+#connect to k8s cluster 
+aws eks --region ap-south-1 update-kubeconfig --name fusion-k8s-cluster --profile aws-root-credentials
+
+#
+sudo chown -R jenkins:jenkins /var/lib/jenkins/.kube
+
+#kubectl config view
+#kubectl config get-contexts
+#kubectl get node
+
+update apiVersion: client.authentication.k8s.io/v1beta1 in config file present in /var/lib/jenkins/.kube
+
+
+download and install trivy
+==========================
+# Add Trivy repository
+cat << EOF | sudo tee -a /etc/yum.repos.d/trivy.repo
+[trivy]
+name=Trivy repository
+baseurl=https://aquasecurity.github.io/trivy-repo/rpm/releases/\$basearch/
+gpgcheck=1
+enabled=1
+gpgkey=https://aquasecurity.github.io/trivy-repo/rpm/public.key
+EOF
+
+# Update the package index
+sudo yum -y update
+
+# Install Trivy
+sudo yum -y install trivy
+
+# Verify the installation
+trivy --version
+
+# Initialize the vulnerability database (optional)
+trivy image --download-db-only
+
+
+
+cat /var/lib/jenkins/secrets/initialAdminPassword
+
+http://publicip:8080
+
+
+
+===========Create inline policy docuemnt for giving permission to IAM user=================
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ecr:CompleteLayerUpload",
+                "ecr:UploadLayerPart",
+                "ecr:InitiateLayerUpload",
+                "ecr:BatchCheckLayerAvailability",
+                "ecr:PutImage",
+                "ecr:BatchGetImage"
+            ],
+            "Resource": "arn:aws:ecr:ap-south-1:533267238276:repository/mfusion-ms"
+        },
+        {
+            "Effect": "Allow",
+            "Action": "ecr:GetAuthorizationToken",
+            "Resource": "*"
+        }
+    ]
+}
