@@ -1,14 +1,17 @@
 
 
-1. Create a Linux VM
+1. Create a Linux VM to connect aws eks cluster .
+ login to cluster and turn root #sudo su - 
 
 2. Install kubectl
- curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+==================
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
 chmod +x kubectl
 mv kubectl /usr/local/bin/
 
 
 3. Install aws-iam-authenticator
+================================
 curl -o aws-iam-authenticator https://amazon-eks.s3.us-west-2.amazonaws.com/1.15.10/2020-02-22/bin/linux/amd64/aws-iam-authenticator
 chmod +x ./aws-iam-authenticator
 sudo mv ./aws-iam-authenticator /usr/local/bin
