@@ -1,0 +1,87 @@
+=============Declarative=================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dev
+=========Imperative Method=============
+#kubectl create ns prod
+#kubectl create ns dev1
+
+
+=============POD===============
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod-prepod
+  namespace: prepod
+spec:
+  containers:
+  - name: my-container
+    image: nginx:latest
+    ports:
+    - containerPort: 80
+
+==========multi-container-pod=============
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multi-container-pod
+spec:
+  volumes:
+    - name: shared-data
+      emptyDir: {}
+  containers:
+    - name: app-container
+      image: nginx
+      volumeMounts:
+        - name: shared-data
+          mountPath: /usr/share/nginx/html
+    - name: side-task
+      image: busybox
+      command: ["/bin/sh", "-c", "echo 'Hello from busybox' > /mnt/shared/index.html && sleep 3600"]
+      volumeMounts:
+        - name: shared-data
+          mountPath: /mnt/shared
+========================INIt Container=========
+apiVersion: v1
+kind: Pod
+metadata:
+  name: init-container-pod
+spec:
+  volumes:
+    - name: config-volume
+      emptyDir: {}
+  initContainers:
+    - name: setup-container
+      image: busybox
+      command: ["/bin/sh", "-c", "echo 'Init setup complete!' > /config/message && sleep 5"]
+      volumeMounts:
+        - name: config-volume
+          mountPath: /config
+  containers:
+    - name: main-app
+      image: nginx
+      volumeMounts:
+        - name: config-volume
+          mountPath: /usr/share/nginx/html
+=======================SideCar Container=============
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: sidecar-container-pod
+spec:
+  containers:
+    - name: main-app
+      image: nginx
+      ports:
+        - containerPort: 80
+    - name: sidecar-logger
+      image: busybox
+      command: ["/bin/sh", "-c", "tail -f /var/log/app.log"]
+      volumeMounts:
+        - name: logs
+          mountPath: /var/log
+  volumes:
+    - name: logs
+      emptyDir: {}
