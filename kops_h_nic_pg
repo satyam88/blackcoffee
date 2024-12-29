@@ -1,0 +1,414 @@
+-rw-r--r--. 1 root root  175 Dec 28 03:53 pod.yaml
+-rw-r--r--. 1 root root  321 Dec 28 03:55 multicontainer.yaml
+-rw-r--r--. 1 root root  319 Dec 28 03:57 init.yaml
+-rw-r--r--. 1 root root  410 Dec 28 03:58 sidecar.yaml
+-rw-r--r--. 1 root root  381 Dec 28 03:59 dameonset.yaml
+-rw-r--r--. 1 root root  346 Dec 28 04:12 deployment.yaml
+-rw-r--r--. 1 root root  224 Dec 28 04:21 pv.yaml
+-rw-r--r--. 1 root root  175 Dec 28 04:22 pvc.yaml
+-rw-r--r--. 1 root root  353 Dec 28 04:25 pod-pvc.yaml
+
+[root@ip-172-31-8-31 ~]#
+[root@ip-172-31-8-31 ~]#
+[root@ip-172-31-8-31 ~]#
+[root@ip-172-31-8-31 ~]# cat *
+
+#simple pod
+============
+apiVersion: v1
+kind: Pod
+metadata:
+  name: simple-pod
+  namespace: prod
+spec:
+  containers:
+  - name: nginx-container
+    image: nginx:1.21
+    ports:
+    - containerPort: 80
+	
+	
+#daemonset
+============
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: logging-daemonset
+  namespace: prod
+spec:
+  selector:
+    matchLabels:
+      app: logging
+  template:
+    metadata:
+      labels:
+        app: logging
+    spec:
+      containers:
+      - name: logging-container
+        image: busybox:latest
+        command: ["sh", "-c", "while true; do echo Log entry $(date); sleep 5; done"]
+	
+#deployment
+==============	
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-deployment
+  namespace: prod
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: sample
+  template:
+    metadata:
+      labels:
+        app: sample
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx:1.21
+        ports:
+        - containerPort: 80
+
+#init container
+====================
+kind: Pod
+metadata:
+  name: init-container-pod
+  namespace: prod
+spec:
+  initContainers:
+  - name: init-container
+    image: busybox:latest
+    command: ["sh", "-c", "echo Preparing the environment; sleep 5"]
+  containers:
+  - name: app-container
+    image: nginx:1.21
+    ports:
+    - containerPort: 80
+	
+	
+#Sidecar container	
+========================
+apiVersion: v1
+kind: Pod
+metadata:
+  name: multi-container-pod
+  namespace: prod
+spec:
+  containers:
+  - name: nginx-container
+    image: nginx:1.21
+    ports:
+    - containerPort: 80
+  - name: busybox-container
+    image: busybox:latest
+    command: ["sh", "-c", "while true; do echo Hello from Busybox; sleep 5; done"]
+
+
+
+
+	  
+	  
+
+	
+PV
+===========
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sample-pv
+  namespace: prod
+spec:
+  capacity:
+    storage: 8Gi
+  accessModes:
+  - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: /mnt/data
+	
+PVC
+=====	
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: sample-pvc
+  namespace: prod
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+	  
+	  
+Mount pvc to pod
+===================	 
+	  
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pvc-mounted-pod
+  namespace: prod
+spec:
+  containers:
+  - name: nginx-container
+    image: nginx:1.21
+    ports:
+    - containerPort: 80
+    volumeMounts:
+    - name: sample-volume
+      mountPath: /usr/share/nginx/html
+  volumes:
+  - name: sample-volume
+    persistentVolumeClaim:
+      claimName: sample-pvc
+Setup Kubernetes cluster in AWS using KOPS (k8s Utility)  - NonManaged Cluster
+==============================================================================
+   
+Prerequisite
+-----------
+1. Create a IAM role in AWS  with the name  “k8s-admin-role-radical” assign full access permission to the role.
+2. Create a EC2 Instance with all traffic open.
+3. Login to the instance
+4. Update all the package of the system
+#yum update -y
+
+5 dont forget to allow all trafic for securiuty group.
+
+6. Create a Private Hosted zone in aws name “satyamprodcluster.in” & select the default VPC.
+Or
+Purchase a Public Domain from GoDaddy/CrazyDomains and create a hosted zone in AWS Route53 charges aplicable, AWS will provide 4 NS server, update the name server provide from aws  in CrazyDomains page
+
+7. Install Kops on AWS EC2:
+curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+chmod +x kops-linux-amd64
+sudo mv kops-linux-amd64 /usr/local/bin/kops
+
+8
+curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+chmod +x ./kubectl
+sudo mv ./kubectl /usr/local/bin/kubectl
+
+
+decide the name of cluster and bucket
+======================================
+Name of the Bucket: gig4-prod-bucket-store
+Name of the cluster:  gig4-prod.connectingclouds.in
+
+9. Create a S3 Bucket
+aws s3 mb s3://gig4-prod-bucket-store --region ap-south-1
+
+
+10. Export the S3Bucket
+export KOPS_STATE_STORE=s3://gig4-prod-bucket-store
+
+11. Apply Versioning on the bucket
+aws s3api put-bucket-versioning --bucket gig4-prod-bucket-store --versioning-configuration Status=Enabled
+
+
+12. Export the path of bucket
+echo "export KOPS_CLUSTER_NAME=gig4-prod.connectingclouds.in" >>  ~/.bashrc
+echo "export KOPS_STATE_STORE=s3://gig4-prod-bucket-store" >> ~/.bashrc
+
+13. Initialize the Environmental Variable
+source ~/.bashrc
+
+14. Generate password less authentication
+ssh-keygen
+
+15. Create Cluster
+kops create cluster --cloud=aws  --name=gig4-prod.connectingclouds.in --state=s3://gig4-prod-bucket-store --dns-zone=connectingclouds.in  --master-zones=ap-south-1a  --master-size=t3.medium --master-volume-size 20 --node-count=2  --node-size=t3.medium  --zones=ap-south-1a,ap-south-1b  --node-volume-size 20 --networking calico
+
+
+
+16. Update the cluster
+kops update cluster --name myprodk8s012010.connectingclouds.in –yes
+
+17. Delete the cluster
+kops delete  cluster --name myprodk8s012010.connectingclouds.in --yes
+====================
+
+
+# Download the Helm installer script
+curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+
+# Make the script executable
+chmod 700 get_helm.sh
+
+# Run the installer script
+./get_helm.sh
+==============================
+
+Installation Steps
+==================
+
+0. Create the ingress-nginx Namespace
+[root@ip-172-31-40-141 ~]# kubectl create ns ingress-nginx
+namespace/ingress-nginx created
+[root@ip-172-31-40-141 ~]#
+
+
+1. Add the NGINX Ingress Controller Helm Repository
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+
+
+
+
+2. Create override-values.yaml File
+=====
+controller:
+  replicaCount: 2
+  service:
+    type: LoadBalancer
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+      service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+      service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+      service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    externalTrafficPolicy: Local
+  admissionWebhooks:
+    enabled: true
+    patch:
+      enabled: true
+=====
+
+3. Install the NGINX Ingress Controller:
+helm install nginx-ingress ingress-nginx/ingress-nginx -f override-values.yaml --namespace ingress-nginx --create-namespace
+
+
+4.  Check the Ingress controller pod is running
+kubectl get pods --namespace ingress-nginx
+kubectl get svc --namespace ingress-nginx
+
+
+5. check the Ingress Controller service
+kubectl get service  --namespace=ingress-nginx
+kubectl describe svc nginx-ingress-ingress-nginx-controller -n ingress-nginx
+
+6. check the deploy Controller service
+kubectl get deploy  --namespace=ingress-nginx
+
+7. Delete the Ingress Controller service
+helm uninstall nginx-ingress -n ingress-nginx
+========================
+
+
+
+Install Prometheus
+==================
+1. Create a namespace for Prometheus:
+kubectl create namespace monitoring
+
+2. Deploy Prometheus using Helm:
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update
+
+Install Prometheus using Helm:
+helm install prometheus prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
+
+Install Grafana using Helm:
+helm install grafana grafana/grafana --namespace monitoring
+
+
+3. Verify Prometheus deployment:
+kubectl get pods -n monitoring -l "release=prometheus"
+
+Manually Create Ingress Resources
+
+Prometheus Ingress (prometheus-ingress.yaml)
+Create a YAML file named prometheus-ingress.yaml to configure the Prometheus Ingress:
+====
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: "nginx"  # Nginx Ingress Controller
+spec:
+  rules:
+  - host: prometheus.connectingclouds.in
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus-operated
+            port:
+              number: 9090  # Prometheus default port
+  tls:
+  - hosts:
+    - prometheus.connectingclouds.in
+    secretName: prometheus-tls  # Optional if using TLS
+    ====
+
+    kubectl apply -f prometheus-ingress.yaml
+
+
+    Create a YAML file named grafana-ingress.yaml to configure the Grafana Ingress:
+===
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grafana
+  namespace: monitoring
+  annotations:
+    kubernetes.io/ingress.class: "nginx"  # Nginx Ingress Controller
+spec:
+  rules:
+  - host: grafana.connectingclouds.in
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana
+            port:
+              number: 80  # Grafana default port
+  tls:
+  - hosts:
+    - grafana.connectingclouds.in
+    secretName: grafana-tls  # Optional if using TLS
+===
+
+kubectl apply -f grafana-ingress.yaml
+
+
+Step 4: Configure DNS (CNAME Records)
+For both Grafana and Prometheus, you need to configure DNS records to point to the NLB (Network Load Balancer) that fronts the Nginx Ingress controller.
+
+Create CNAME records:
+
+grafana.connectingclouds.in -> NLB DNS name (e.g., aeef614466a6a4362885802d8fe06b15-f086c3cdfdcb3866.elb.ap-south-1.amazonaws.com)
+prometheus.connectingclouds.in -> NLB DNS name
+
+
+Check Ingress Resources:
+kubectl get ingress -n monitoring
+Verify that grafana.connectingclouds.in and prometheus.connectingclouds.in resolve to the NLB address. You can use dig or nslookup for this:
+
+Once DNS has propagated, you should be able to access:
+
+Grafana: http://grafana.connectingclouds.in
+Prometheus: http://prometheus.connectingclouds.in
+
+Login to grafana
+User name : admin 
+password:  kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode
+
+
+Prometheus is accessible via http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090.
+Update Grafana's data source configuration to point to this URL.
+Test the connection in Grafana.
+
+
+https://grafana.com/grafana/dashboards/
+
