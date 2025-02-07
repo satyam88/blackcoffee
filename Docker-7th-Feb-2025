@@ -1,3 +1,12 @@
+#sudo su - 
+#yum install docker -y
+#service docker start
+#chkconfig docker on
+#usermod -aG docker ec2-user
+#docker version
+
+
+
 Dockerfile Example
 ==================
 # Use the official Ubuntu base image
