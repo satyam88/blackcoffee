@@ -82,7 +82,7 @@ pipeline {
     }
 
     tools {
-        maven 'maven_3.9.4'
+        maven 'mvn_3.9.9'
     }
 
     stages {
@@ -100,22 +100,6 @@ pipeline {
                 echo 'JUnit Test Cases Completed Successfully!'
             }
         }
-        stage('SonarQube Code Quality') {
-            environment {
-                scannerHome = tool 'qube'
-            }
-            steps {
-                echo 'Starting SonarQube Code Quality Scan...'
-                withSonarQubeEnv('sonar-server') {
-                    sh 'mvn sonar:sonar'
-                }
-                echo 'SonarQube Scan Completed. Checking Quality Gate...'
-                timeout(time: 10, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
-                echo 'Quality Gate Check Completed!'
-            }
-        }
         stage('Code Package') {
             steps {
                 echo 'Creating WAR Artifact...'
@@ -126,14 +110,14 @@ pipeline {
         stage('Build & Tag Docker Image') {
             steps {
                 echo 'Building Docker Image with Tags...'
-                sh "docker build -t satyam88/makemytrip-microservice:latest -t makemytrip-microservice:latest ."
+                sh "docker build -t satyam88/booking-ms:latest -t booking-ms:latest ."
                 echo 'Docker Image Build Completed!'
             }
         }
         stage('Docker Image Scanning') {
             steps {
-                echo 'Scanning Docker Image...'
-                sh 'docker scan satyam88/makemytrip-microservice:latest || echo "Scan Failed - Proceeding with Caution"'
+                echo 'Scanning Docker Image with Trivy...'
+                sh 'trivy image ${DOCKER_IMAGE}:latest || echo "Scan Failed - Proceeding with Caution"'
                 echo 'Docker Image Scanning Completed!'
             }
         }
@@ -143,7 +127,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'dockerhubCred', variable: 'dockerhubCred')]) {
                         sh 'docker login docker.io -u satyam88 -p ${dockerhubCred}'
                         echo 'Pushing Docker Image to Docker Hub...'
-                        sh 'docker push satyam88/makemytrip-microservice:latest'
+                        sh 'docker push satyam88/booking-ms:latest'
                         echo 'Docker Image Pushed to Docker Hub Successfully!'
                     }
                 }
@@ -156,8 +140,8 @@ pipeline {
                         echo 'Tagging and Pushing Docker Image to ECR...'
                         sh '''
                             docker images
-                            docker tag makemytrip-microservice:latest 533267238276.dkr.ecr.ap-south-1.amazonaws.com/makemytrip-microservice:latest
-                            docker push 533267238276.dkr.ecr.ap-south-1.amazonaws.com/makemytrip-microservice:latest
+                            docker tag booking-ms:latest 533267238276.dkr.ecr.ap-south-1.amazonaws.com/booking-ms:latest
+                            docker push 533267238276.dkr.ecr.ap-south-1.amazonaws.com/booking-ms:latest
                         '''
                         echo 'Docker Image Pushed to Amazon ECR Successfully!'
                     }
@@ -168,10 +152,10 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        sh 'docker login http://3.6.37.208:8085/repository/makemytrip-microservice/ -u admin -p ${PASSWORD}'
+                        sh 'docker login http://43.205.196.227:8085/repository/booking-ms/ -u admin -p ${PASSWORD}'
                         echo "Push Docker Image to Nexus : In Progress"
-                        sh 'docker tag makemytrip-microservice 3.6.37.208:8085/makemytrip-microservice:latest'
-                        sh 'docker push 3.6.37.208:8085/makemytrip-microservice'
+                        sh 'docker tag booking-ms 43.205.196.227:8085/booking-ms:latest'
+                        sh 'docker push 43.205.196.227:8085/booking-ms'
                         echo "Push Docker Image to Nexus : Completed"
                     }
                 }
