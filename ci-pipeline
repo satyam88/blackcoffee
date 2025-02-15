@@ -397,7 +397,7 @@ pipeline {
                     docker rmi satyam88/booking-ms:latest || echo "Image not found or already deleted"
                     docker rmi booking-ms:latest || echo "Image not found or already deleted"
                     docker rmi 533267238276.dkr.ecr.ap-south-1.amazonaws.com/booking-ms:latest || echo "Image not found or already deleted"
-                    docker images prune -f
+                    docker image prune -f
                 '''
                 echo 'Local Docker Images Cleaned Up Successfully!'
             }
