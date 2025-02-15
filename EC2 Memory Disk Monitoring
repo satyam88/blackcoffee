@@ -22,29 +22,35 @@ sudo /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl -m ec2 -a 
 ```
 
 ## Value for the SSM Parameter (/alarm/AWS-CWAgentLinConfig):
-```bash
+====
 {
-	"metrics": {
-		"append_dimensions": {
-			"InstanceId": "${aws:InstanceId}"
-		},
-		"metrics_collected": {
-			"mem": {
-				"measurement": [
-					"mem_used_percent"
-				],
-				"metrics_collection_interval": 60
-			},
+    "metrics": {
+        "append_dimensions": {
+            "InstanceId": "${aws:InstanceId}"
+        },
+        "metrics_collected": {
+            "mem": {
+                "measurement": [
+                    "mem_used_percent"
+                ],
+                "metrics_collection_interval": 60
+            },
             "disk": {
-				"measurement": [
-                     "disk_used_percent"
-				],
-				"metrics_collection_interval": 60
-			}
-		}
-	}
+                "measurement": [
+                    "used_percent"
+                ],
+                "metrics_collection_interval": 60,
+                "resources": [
+                    "*"
+                ],
+                "ignore_file_system_types": [
+                    "sysfs", "devtmpfs"
+                ]
+            }
+        }
+    }
 }
-```
+===
 
 ## Reference/Additional Reading:
 1. https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Install-CloudWatch-Agent-New-Instances-CloudFormation.html
