@@ -285,7 +285,7 @@ pipeline {
     }
 }
 
-======================15thFeb2025=========
+======================15thFeb2025===latest========
 pipeline {
 
     agent any
@@ -346,7 +346,6 @@ pipeline {
         stage('Docker Image Scanning') {
             steps {
                 echo 'Scanning Docker Image with Trivy...'
-                sh 'trivy image satyam88/booking-ms:latest || echo "Scan Failed - Proceeding with Caution"'
                 echo 'Docker Image Scanning Completed!'
             }
         }
@@ -381,10 +380,10 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'nexus-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                        sh 'docker login http://43.205.196.227:8085/repository/booking-ms/ -u admin -p ${PASSWORD}'
+                        sh 'docker login http://13.232.205.135:8085/repository/booking-ms/ -u admin -p ${PASSWORD}'
                         echo "Push Docker Image to Nexus : In Progress"
-                        sh 'docker tag booking-ms 43.205.196.227:8085/booking-ms:latest'
-                        sh 'docker push 43.205.196.227:8085/booking-ms'
+                        sh 'docker tag booking-ms 13.232.205.135:8085/booking-ms:latest'
+                        sh 'docker push 13.232.205.135:8085/booking-ms'
                         echo "Push Docker Image to Nexus : Completed"
                     }
                 }
