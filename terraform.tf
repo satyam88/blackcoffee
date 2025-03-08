@@ -138,3 +138,89 @@ output "instance_Private_ip_addr" {
 output "instance_Public_ip_addr" {
   value = aws_instance.dev-instance[*].public_ip
 }
+
+
+==============LABS 3=============
+provider "aws" {
+  region = "ap-south-1"
+}
+
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "5.86.0"
+    }
+  }
+}
+
+=====
+data "aws_ami" "amazon-linux-3" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023*"] 
+  }
+
+  filter {
+    name   = "owner-alias"
+    values = ["amazon"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+  filter {
+    name   = "architecture"
+    values = ["x86_64"]
+  }
+}
+
+resource "aws_instance" "dev-instance" {
+  ami           = data.aws_ami.amazon-linux-3.id
+  instance_type = var.instance_size
+  count         = var.instance_count
+  key_name      = var.instance_key
+
+  tags = {
+    Name        = "My Network"
+    Environment = "Dev"
+  }
+}
+
+========
+variable "instance_size" {
+  type = string
+}
+
+variable "instance_count" {
+  type = number
+}
+variable "instance_key" {
+  type = string
+}
+====
+output "instance_Private_ip_addr" {
+  value = aws_instance.dev-instance[*].private_ip
+}
+
+output "instance_Public_ip_addr" {
+  value = aws_instance.dev-instance[*].public_ip
+}
+==========
+
+instance_count = 1
+instance_size  = "t2.small"
+instance_key   = "aws-2025"
+aws_region     = "ap-south-1"
+===========
+terraform {
+  backend "s3" {
+    bucket = "radical-aws-infra-tfstate-dev"
+    key    = "terraform.tfstate"
+    region = "ap-south-1"
+  }
+}
+
