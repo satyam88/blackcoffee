@@ -1,3 +1,17 @@
+plugin to install
+=================
+stage
+maven
+aws
+terraform
+docker
+kubernetes
+sonarqube
+nexus
+ecr
+ansible
+blueocean
+===============
 pipeline {
 
     agent any
