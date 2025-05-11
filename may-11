@@ -1,1 +1,176 @@
-hello
+====================================
+pipeline {
+
+    agent any
+
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '3', artifactNumToKeepStr: '3'))
+    }
+
+    tools {
+        maven 'mvn_3.9.9'  // Make sure this Maven tool is defined in Jenkins global tools
+    }
+
+    stages {
+        stage('Code Compilation') {
+            steps {
+                echo 'Starting Code Compilation...'
+                sh 'mvn clean compile'
+                echo 'Code Compilation Completed Successfully!'
+            }
+        }
+
+        stage('Code QA Execution') {
+            steps {
+                echo 'Running JUnit Test Cases...'
+                sh 'mvn clean test'
+                echo 'JUnit Test Cases Completed Successfully!'
+            }
+        }
+
+        stage('Code Package') {
+            steps {
+                echo 'Creating WAR Artifact...'
+                sh 'mvn clean package'
+                echo 'WAR Artifact Created Successfully!'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Build completed successfully.'
+        }
+        failure {
+            echo '❌ Build failed.'
+        }
+    }
+}
+======================
+
+
+pipeline {
+    agent any
+    parameters {
+        string(name: 'maven_version', defaultValue: '3.9.3', description: 'Pass the version of Maven')
+        string(name: 'terraform_version', defaultValue: '1.8.5', description: 'Pass the version of Terraform')		
+    }
+    stages {
+        stage('Download Maven') {
+            steps {
+                sh '''
+                cd /var/lib/jenkins/
+                sudo wget https://dlcdn.apache.org/maven/maven-3/${maven_version}/binaries/apache-maven-${maven_version}-bin.tar.gz
+                '''
+            }
+        }
+        stage('Download Terraform') {
+            steps {
+                sh '''
+                cd /opt
+                sudo wget https://releases.hashicorp.com/terraform/${terraform_version}/terraform_${terraform_version}_linux_amd64.zip
+                '''
+            }
+        }		
+    }
+}
+========================
+
+pipeline {
+    agent any
+
+    parameters {
+        choice(
+            name: 'AWS_REGION',
+            choices: ['us-east-1', 'us-west-1', 'us-west-2', 'eu-central-1', 'eu-west-1', 'ap-south-1'], 
+            description: 'Select the AWS region'
+        )
+    }
+
+    environment {
+        AWS_REGION = "${params.AWS_REGION}"
+    }
+
+    stages {
+        stage('List AWS Resources') {
+            steps {
+                script {
+                    echo "Listing resources in the region: ${AWS_REGION}"
+
+                    // Use withCredentials to securely access AWS credentials
+                    withCredentials([usernamePassword(credentialsId: 'aws-credentials-id', usernameVariable: 'AWS_ACCESS_KEY_ID', passwordVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                        
+                        // List all EC2 instances
+                        echo "Fetching EC2 Instances..."
+                        sh """
+                            aws ec2 describe-instances --region ${AWS_REGION} --query "Reservations[*].Instances[*].{InstanceId:InstanceId, State:State.Name, InstanceType:InstanceType, PublicIpAddress:PublicIpAddress}" --output table
+                        """
+
+                        // List all EBS volumes
+                        echo "Fetching EBS Volumes..."
+                        sh """
+                            aws ec2 describe-volumes --region ${AWS_REGION} --query "Volumes[*].{VolumeId:VolumeId, Size:Size, State:State}" --output table
+                        """
+
+                        // List all Security Groups
+                        echo "Fetching Security Groups..."
+                        sh """
+                            aws ec2 describe-security-groups --region ${AWS_REGION} --query "SecurityGroups[*].{GroupName:GroupName, GroupId:GroupId, Description:Description, VpcId:VpcId}" --output table
+                        """
+
+                        // List all Elastic IPs
+                        echo "Fetching Elastic IPs..."
+                        sh """
+                            aws ec2 describe-addresses --region ${AWS_REGION} --query "Addresses[*].{PublicIp:PublicIp, InstanceId:InstanceId}" --output table
+                        """
+                    }
+                }
+            }
+        }
+    }
+}
+
+Home Directory for Jenkins
+/var/lib/jenkins
+
+service jenkins restart
+service jenkins status
+
+
+[root@ip-172-31-37-131 jenkins]# service jenkins
+The service command supports only basic LSB actions (start, stop, restart, try-restart, reload, reload-or-restart, try-reload-or-restart, force-reload, status, condrestart). For other actions, please try to use systemctl.
+
+ENable Logs in jenkins
+======================
+
+mkdir -p /etc/systemd/system/jenkins.service.d
+sudo vim /etc/systemd/system/jenkins.service.d/override.conf
+
+[Service]
+StandardOutput=append:/var/log/jenkins/jenkins.log
+StandardError=append:/var/log/jenkins/jenkins.log
+
+save and exit -> :wq!
+
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+sudo systemctl restart jenkins
+
+tail -f /var/log/jenkins/jenkins.log
+
+
+
+
+========how to find plugin binary===============================
+https://plugins.jenkins.io/gcp-secrets-manager-credentials-provider/
+https://github.com/jenkinsci/gcp-secrets-manager-credentials-provider-plugin/releases/tag/v0.3.1
+wget https://github.com/jenkinsci/gcp-secrets-manager-credentials-provider-plugin/archive/refs/tags/v0.3.1.zip
+
+
+===========install plugin in jenkins using CLI=========================================
+wget https://updates.jenkins.io/download/plugins/gcp-secrets-manager-credentials-provider/0.3.1/gcp-secrets-manager-credentials-provider.hpi
+sudo mv gcp-secrets-manager-credentials-provider.hpi /var/lib/jenkins/plugins/
+sudo chown jenkins:jenkins /var/lib/jenkins/plugins/gcp-secrets-manager-credentials-provider.hpi
+sudo chmod 644 /var/lib/jenkins/plugins/gcp-secrets-manager-credentials-provider.hpi
+sudo systemctl restart jenkins
+================================
