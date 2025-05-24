@@ -6,6 +6,12 @@
 #docker version
 
 
+===============
+download the jenkins image from dockerhub and create container
+   22  docker pull jenkins/jenkins
+   33  docker run -itd --name jenkins-master -p 8080:8080 jenkins/jenkins
+
+==========================
 
 Dockerfile Example
 ==================
